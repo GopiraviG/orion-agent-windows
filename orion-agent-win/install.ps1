@@ -41,19 +41,33 @@ catch {
     Set-Content -Path $ConfigPath -Value $FallbackConfig
 }
 
-# 2. Download Agent Script
+# 2. Download Agent Package
+
 Write-Host "[2/5] Downloading Windows agent..."
-$ZipUrl ="https://github.com/GopiraviG/orion-agent-windows/releases/download/v1.0.0/orion-agent-win.zip"
 
-$tempZip ="$env:TEMP\orion-agent-win.zip"
+$ZipUrl =
+    "https://github.com/GopiraviG/orion-agent-windows/releases/latest/download/orion-agent-win.zip"
 
-Invoke-WebRequest `-Uri $ZipUrl `-OutFile $tempZip
+$tempZip =
+    "$env:TEMP\orion-agent-win.zip"
+
+Invoke-WebRequest `
+    -Uri $ZipUrl `
+    -OutFile $tempZip `
+    -UseBasicParsing
 
 Expand-Archive `
     -Path $tempZip `
     -DestinationPath $InstallPath `
     -Force
-``
+
+$ExtractedAgent =
+    Join-Path $InstallPath "windows\agent-windows.ps1"
+
+Copy-Item `
+    -Path $ExtractedAgent `
+    -Destination $AgentPath `
+    -Force	
 #Invoke-WebRequest -Uri "$Server/agent/windows/agent-windows.ps1" -OutFile $AgentPath -UseBasicParsing
 # ============================================================
 # CONFIGURATION (DYNAMIC FROM SERVER WITH FALLBACK)
