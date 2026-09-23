@@ -295,7 +295,11 @@ function Get-DiskInfo {
             Get-CimInstance Win32_LogicalDisk `
                 -Filter "DriveType=3"
 
+        Log "Disk count: $($logicalDisks.Count)"
+
         foreach ($disk in $logicalDisks) {
+
+            Log "Processing drive $($disk.DeviceID)"
 
             $totalBytes = [double]$disk.Size
             $freeBytes  = [double]$disk.FreeSpace
@@ -306,32 +310,32 @@ function Get-DiskInfo {
             if ($totalBytes -gt 0) {
 
                 $usedPercent =
-                    [math\]::Round(
+                    [Math\]::Round(
                         ($usedBytes / $totalBytes) * 100,
                         1
                     )
             }
 
             $driveTotalMB =
-                [math\]::Round(
+                [Math\]::Round(
                     $totalBytes / 1MB,
                     2
                 )
 
             $driveFreeMB =
-                [math\]::Round(
+                [Math\]::Round(
                     $freeBytes / 1MB,
                     2
                 )
 
             $driveUsedMB =
-                [math\]::Round(
+                [Math\]::Round(
                     $usedBytes / 1MB,
                     2
                 )
 
             $totalMB += $driveTotalMB
-            $freeMB += $driveFreeMB
+            $freeMB  += $driveFreeMB
 
             $volumes += @{
                 drive       = [string]$disk.DeviceID
@@ -342,6 +346,11 @@ function Get-DiskInfo {
                 usedPercent = $usedPercent
             }
         }
+
+        Log "Volume Count: $($volumes.Count)"
+        Log "Total MB: $totalMB"
+        Log "Free MB: $freeMB"
+
     }
     catch {
 
@@ -356,11 +365,8 @@ function Get-DiskInfo {
     if ($totalMB -gt 0) {
 
         $overallUsedPercent =
-            [math\]::Round(
-                (
-                    ($totalMB - $freeMB) /
-                    $totalMB
-                ) * 100,
+            [Math\]::Round(
+                (($totalMB - $freeMB) / $totalMB) * 100,
                 1
             )
     }
