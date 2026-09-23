@@ -62,12 +62,13 @@ Expand-Archive `
     -Force
 
 $ExtractedAgent =
-    Join-Path $InstallPath "windows\agent-windows.ps1"
+    Join-Path $InstallPath "agent-windows.ps1"
 
 Copy-Item `
     -Path $ExtractedAgent `
     -Destination $AgentPath `
-    -Force	
+    -Force
+	
 #Invoke-WebRequest -Uri "$Server/agent/windows/agent-windows.ps1" -OutFile $AgentPath -UseBasicParsing
 # ============================================================
 # CONFIGURATION (DYNAMIC FROM SERVER WITH FALLBACK)
