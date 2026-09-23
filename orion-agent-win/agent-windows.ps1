@@ -284,60 +284,96 @@ function Get-MemoryInfo {
 # ============================================================
 
 function Get-DiskInfo {
-    $disks = @()
+
+    $volumes = @()
+
+    $totalMB = 0
+    $freeMB  = 0
 
     try {
+
         foreach (
-            $disk in
-            Get-CimInstance Win32_LogicalDisk `
+            $disk in Get-CimInstance Win32_LogicalDisk `
                 -Filter "DriveType=3"
         ) {
+
             $totalBytes = [double]$disk.Size
             $freeBytes  = [double]$disk.FreeSpace
             $usedBytes  = $totalBytes - $freeBytes
 
             $percent = 0
+
             if ($totalBytes -gt 0) {
-                $percent = [math]::Round(($usedBytes / $totalBytes) * 100, 1)
+
+                $percent =
+                    [math\]::Round(
+                        ($usedBytes / $totalBytes) * 100,
+                        1
+                    )
             }
 
-            $totalMB = [math]::Round($totalBytes / 1MB, 2)
-            $freeMB  = [math]::Round($freeBytes / 1MB, 2)
-            $usedMB  = [math]::Round($usedBytes / 1MB, 2)
+            $driveTotalMB =
+                [math\]::Round(
+                    $totalBytes / 1MB,
+                    2
+                )
 
-            $disks += @{
+            $driveFreeMB =
+                [math\]::Round(
+                    $freeBytes / 1MB,
+                    2
+                )
+
+            $driveUsedMB =
+                [math\]::Round(
+                    $usedBytes / 1MB,
+                    2
+                )
+
+            $totalMB += $driveTotalMB
+            $freeMB  += $driveFreeMB
+
+            $volumes += @{
                 drive       = [string]$disk.DeviceID
                 Name        = [string]$disk.DeviceID
-                totalMB     = $totalMB
-                freeMB      = $freeMB
-                usedMB      = $usedMB
-                total       = "$(Get-SizeGB $totalBytes) GB"
-                free        = "$(Get-SizeGB $freeBytes) GB"
-                used        = "$(Get-SizeGB $usedBytes) GB"
+                totalMB     = $driveTotalMB
+                freeMB      = $driveFreeMB
+                usedMB      = $driveUsedMB
                 usedPercent = $percent
             }
         }
+
     }
     catch {
-        Log ("Disk collector error: " + $_.Exception.Message)
+
+        Log (
+            "Disk collector error: " +
+            $_.Exception.Message
+        )
     }
 
-    if ($disks.Count -eq 0) {
-        $disks += @{
-            drive       = "-"
-            Name        = "-"
-            totalMB     = 0
-            freeMB      = 0
-            usedMB      = 0
-            total       = "0 GB"
-            free        = "0 GB"
-            used        = "0 GB"
-            usedPercent = 0
-        }
+    $overallUsedPercent = 0
+
+    if ($totalMB -gt 0) {
+
+        $overallUsedPercent =
+            [math\]::Round(
+                (
+                    ($totalMB - $freeMB)
+                    /
+                    $totalMB
+                ) * 100,
+                1
+            )
     }
 
-    # Return the full array of all drives (C:, D:, F:, etc.)
-    return $disks
+    return @{
+        totalMB     = $totalMB
+        freeMB      = $freeMB
+        usedMB      = ($totalMB - $freeMB)
+        usedPercent = $overallUsedPercent
+        volumes     = $volumes
+    }
 }
 # ============================================================
 # NETWORK
@@ -746,7 +782,9 @@ function Collect {
         (
             Get-Date
         ).ToUniversalTime().ToString("o")
-
+	
+	$diskInfo = Get-DiskInfo
+	
     $report = @{
         schemaVersion = "1.0"
 
@@ -776,7 +814,14 @@ function Collect {
 
         memory = Get-MemoryInfo
 
-        disk = Get-DiskInfo
+		disk = @{
+			totalMB     = $diskInfo.totalMB
+			freeMB      = $diskInfo.freeMB
+			usedMB      = $diskInfo.usedMB
+			usedPercent = $diskInfo.usedPercent
+		}
+		
+		volumes = $diskInfo.volumes
 			
 		logs = @(Get-SystemLogs)
 
