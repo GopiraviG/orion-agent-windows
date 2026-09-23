@@ -295,11 +295,7 @@ function Get-DiskInfo {
             Get-CimInstance Win32_LogicalDisk `
                 -Filter "DriveType=3"
 
-        Log "Disk count: $($logicalDisks.Count)"
-
         foreach ($disk in $logicalDisks) {
-
-            Log "Processing drive $($disk.DeviceID)"
 
             $totalBytes = [double]$disk.Size
             $freeBytes  = [double]$disk.FreeSpace
@@ -346,10 +342,6 @@ function Get-DiskInfo {
                 usedPercent = $usedPercent
             }
         }
-
-        Log "Volume Count: $($volumes.Count)"
-        Log "Total MB: $totalMB"
-        Log "Free MB: $freeMB"
 
     }
     catch {
