@@ -61,15 +61,21 @@ Expand-Archive `
     -DestinationPath $InstallPath `
     -Force
 
-$ExtractedAgent =
-    Join-Path $InstallPath "agent-windows.ps1"
+$ExtractedAgent = Get-ChildItem `
+    -Path $InstallPath `
+    -Recurse `
+    -Filter "agent-windows.ps1" |
+    Select-Object -First 1 -ExpandProperty FullName
+
+if (-not $ExtractedAgent) {
+    throw "agent-windows.ps1 not found after extracting package."
+}
 
 Copy-Item `
     -Path $ExtractedAgent `
     -Destination $AgentPath `
     -Force
 	
-#Invoke-WebRequest -Uri "$Server/agent/windows/agent-windows.ps1" -OutFile $AgentPath -UseBasicParsing
 # ============================================================
 # CONFIGURATION (DYNAMIC FROM SERVER WITH FALLBACK)
 # ============================================================
