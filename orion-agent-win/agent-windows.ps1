@@ -286,26 +286,26 @@ function Get-MemoryInfo {
 function Get-DiskInfo {
 
     $volumes = @()
-
     $totalMB = 0
-    $freeMB  = 0
+    $freeMB = 0
 
     try {
 
-        foreach (
-            $disk in Get-CimInstance Win32_LogicalDisk `
+        $logicalDisks =
+            Get-CimInstance Win32_LogicalDisk `
                 -Filter "DriveType=3"
-        ) {
+
+        foreach ($disk in $logicalDisks) {
 
             $totalBytes = [double]$disk.Size
             $freeBytes  = [double]$disk.FreeSpace
             $usedBytes  = $totalBytes - $freeBytes
 
-            $percent = 0
+            $usedPercent = 0
 
             if ($totalBytes -gt 0) {
 
-                $percent =
+                $usedPercent =
                     [math\]::Round(
                         ($usedBytes / $totalBytes) * 100,
                         1
@@ -331,7 +331,7 @@ function Get-DiskInfo {
                 )
 
             $totalMB += $driveTotalMB
-            $freeMB  += $driveFreeMB
+            $freeMB += $driveFreeMB
 
             $volumes += @{
                 drive       = [string]$disk.DeviceID
@@ -339,10 +339,9 @@ function Get-DiskInfo {
                 totalMB     = $driveTotalMB
                 freeMB      = $driveFreeMB
                 usedMB      = $driveUsedMB
-                usedPercent = $percent
+                usedPercent = $usedPercent
             }
         }
-
     }
     catch {
 
@@ -359,8 +358,7 @@ function Get-DiskInfo {
         $overallUsedPercent =
             [math\]::Round(
                 (
-                    ($totalMB - $freeMB)
-                    /
+                    ($totalMB - $freeMB) /
                     $totalMB
                 ) * 100,
                 1
@@ -375,6 +373,7 @@ function Get-DiskInfo {
         volumes     = $volumes
     }
 }
+
 # ============================================================
 # NETWORK
 # ============================================================
