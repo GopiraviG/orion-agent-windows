@@ -310,26 +310,26 @@ function Get-DiskInfo {
             if ($totalBytes -gt 0) {
 
                 $usedPercent =
-                    [Math\]::Round(
+                    [math]::Round(
                         ($usedBytes / $totalBytes) * 100,
                         1
                     )
             }
 
             $driveTotalMB =
-                [Math\]::Round(
+                [math]::Round(
                     $totalBytes / 1MB,
                     2
                 )
 
             $driveFreeMB =
-                [Math\]::Round(
+                [math]::Round(
                     $freeBytes / 1MB,
                     2
                 )
 
             $driveUsedMB =
-                [Math\]::Round(
+                [math]::Round(
                     $usedBytes / 1MB,
                     2
                 )
@@ -365,7 +365,7 @@ function Get-DiskInfo {
     if ($totalMB -gt 0) {
 
         $overallUsedPercent =
-            [Math\]::Round(
+            [math]::Round(
                 (($totalMB - $freeMB) / $totalMB) * 100,
                 1
             )
