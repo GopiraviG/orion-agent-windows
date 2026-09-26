@@ -41,10 +41,15 @@ $ServiceName =
 # ADMIN CHECK
 # ============================================================
 
-if (-not (
-    [Security.Principal.WindowsPrincipal]
+$currentIdentity =
     [Security.Principal.WindowsIdentity\]::GetCurrent()
-).IsInRole(
+
+$principal =
+    New-Object Security.Principal.WindowsPrincipal(
+        $currentIdentity
+    )
+
+if (-not $principal.IsInRole(
     [Security.Principal.WindowsBuiltInRole\]::Administrator
 )) {
 

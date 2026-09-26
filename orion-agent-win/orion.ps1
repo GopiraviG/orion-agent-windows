@@ -7,12 +7,17 @@ $ServiceName = "OrionSysPulse"
 
 function Test-Administrator {
 
-    $currentUser = [Security.Principal.WindowsIdentity\]::GetCurrent()
+    $currentUser =
+        [Security.Principal.WindowsIdentity\]::GetCurrent()
 
-    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
+    $principal =
+        New-Object Security.Principal.WindowsPrincipal(
+            $currentUser
+        )
 
     if (-not $principal.IsInRole(
-        [Security.Principal.WindowsBuiltInRole\]::Administrator)) {
+        [Security.Principal.WindowsBuiltInRole\]::Administrator
+    )) {
 
         Write-Host ""
         Write-Host "Please run PowerShell as Administrator."
