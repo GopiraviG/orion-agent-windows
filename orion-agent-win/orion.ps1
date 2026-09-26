@@ -8,7 +8,7 @@ $ServiceName = "OrionSysPulse"
 function Test-Administrator {
 
     $currentUser =
-        [Security.Principal.WindowsIdentity\]::GetCurrent()
+        [Security.Principal.WindowsIdentity]::GetCurrent()
 
     $principal =
         New-Object Security.Principal.WindowsPrincipal(
@@ -16,7 +16,7 @@ function Test-Administrator {
         )
 
     if (-not $principal.IsInRole(
-        [Security.Principal.WindowsBuiltInRole\]::Administrator
+        [Security.Principal.WindowsBuiltInRole]::Administrator
     )) {
 
         Write-Host ""

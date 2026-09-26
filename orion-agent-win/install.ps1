@@ -42,7 +42,7 @@ $ServiceName =
 # ============================================================
 
 $currentIdentity =
-    [Security.Principal.WindowsIdentity\]::GetCurrent()
+    [Security.Principal.WindowsIdentity]::GetCurrent()
 
 $principal =
     New-Object Security.Principal.WindowsPrincipal(
@@ -50,7 +50,7 @@ $principal =
     )
 
 if (-not $principal.IsInRole(
-    [Security.Principal.WindowsBuiltInRole\]::Administrator
+    [Security.Principal.WindowsBuiltInRole]::Administrator
 )) {
 
     throw "Please run PowerShell as Administrator."
