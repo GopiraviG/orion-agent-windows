@@ -466,85 +466,43 @@ function Get-Patches {
 
     $result = @()
 
+    #
+    # Installed Updates
+    #
     try {
 
         $hotfixes =
-            Get-HotFix
+            Get-HotFix |
+            Sort-Object InstalledOn -Descending
 
-        $valid = @()
+        foreach ($hotfix in $hotfixes) {
 
-        foreach (
-            $hotfix in $hotfixes
-        ) {
-
-            $dateValue = $null
+            $installedDate = "-"
 
             try {
 
-                if (
-                    $null -ne $hotfix.InstalledOn -and
-                    -not [string]::IsNullOrWhiteSpace(
-                        [string]$hotfix.InstalledOn
-                    )
-                ) {
+                if ($hotfix.InstalledOn) {
 
-                    $dateValue =
-                        [datetime]$hotfix.InstalledOn
+                    $installedDate =
+                        ([datetime]$hotfix.InstalledOn).ToString(
+                            "yyyy-MM-dd"
+                        )
                 }
 
-            }
-            catch {
-
-                $dateValue = $null
-            }
-
-            $valid += [PSCustomObject]@{
-
-                HotFix =
-                    $hotfix
-
-                InstallDate =
-                    $dateValue
-            }
-        }
-
-        $valid =
-            $valid |
-            Sort-Object `
-                -Property InstallDate `
-                -Descending
-
-        foreach (
-            $item in
-            $valid |
-            Select-Object -First 30
-        ) {
-
-            $h =
-                $item.HotFix
-
-            $installed = ""
-
-            if (
-                $null -ne
-                $item.InstallDate
-            ) {
-
-                $installed =
-                    $item.InstallDate.ToString(
-                        "yyyy-MM-dd"
-                    )
-            }
+            } catch {}
 
             $result += @{
                 id =
-                    [string]$h.HotFixID
+                    [string]$hotfix.HotFixID
 
                 description =
-                    [string]$h.Description
+                    [string]$hotfix.Description
 
                 installed =
-                    $installed
+                    $installedDate
+
+                status =
+                    "SUCCESS"
             }
         }
 
@@ -552,14 +510,53 @@ function Get-Patches {
     catch {
 
         Log (
-            "Patch collector warning: " +
+            "Installed patch collector error: " +
             $_.Exception.Message
         )
+
+    }
+
+    #
+    # Available Updates
+    #
+    try {
+
+        $availableUpdates =
+            Get-AvailableUpdates
+
+        foreach ($update in $availableUpdates) {
+
+            $result += @{
+                id =
+                    if ($update.id) {
+                        $update.id
+                    } else {
+                        "-"
+                    }
+
+                description =
+                    $update.description
+
+                installed =
+                    "-"
+
+                status =
+                    "PENDING"
+            }
+        }
+
+    }
+    catch {
+
+        Log (
+            "Available update collector error: " +
+            $_.Exception.Message
+        )
+
     }
 
     return $result
 }
-
 # ============================================================
 # PROCESSES
 # ============================================================
@@ -970,6 +967,53 @@ function Send-Report {
         return $false
     }
 }
+
+# ============================================================
+# AVAILABLE PATCH UPDATES
+# ============================================================
+function Get-AvailableUpdates {
+
+    try {
+
+        $Session =
+            New-Object -ComObject Microsoft.Update.Session
+
+        $Searcher =
+            $Session.CreateUpdateSearcher()
+
+        $Result =
+            $Searcher.Search(
+                "IsInstalled=0"
+            )
+
+        $Updates = @()
+
+        foreach ($Update in $Result.Updates) {
+
+            $Updates += @{
+                id = (
+                    $Update.KBArticleIDs -join ","
+                )
+
+                description =
+                    $Update.Title
+
+                installed =
+                    "UPDATE AVAILABLE"
+
+                status =
+                    "PENDING"
+            }
+        }
+
+        return $Updates
+
+    } catch {
+
+        return @()
+    }
+}
+
 
 # ============================================================
 # MAIN
